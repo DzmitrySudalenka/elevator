@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Elevator" default="main">
+	
+	<macrodef name="buildproject">
+        <attribute name="testdir"/>
+        <attribute name="logdir"/>
+		<attribute name="srcdir"/>
+		<attribute name="classesdir"/>
+        <attribute name="resources"/>
+        <attribute name="properties"/>
+        <attribute name="logconfig"/>
+		<attribute name="jardir"/>
+		<attribute name="jarname"/>
+		<attribute name="mainclass"/>
+        <element name="projectclasspath"/>
+		<sequential>
+			<mkdir dir="@{classesdir}"/>
+            <copy todir="@{classesdir}/@{resources}">
+                <file file="@{srcdir}/@{resources}/@{properties}"/>
+            </copy>
+            <copy todir="@{classesdir}">
+                <file file="@{srcdir}/@{logconfig}"/>
+            </copy>
+            <path id="classpath">
+				<projectclasspath/>
+			</path>
+			<javac srcdir="@{srcdir}"
+				   destdir="@{classesdir}"
+                   classpathref="classpath"
+				   includeantruntime="false"/>
+            <javac srcdir="@{testdir}"
+				   destdir="@{classesdir}"
+                   classpathref="classpath"
+				   includeantruntime="false"/>
+            <mkdir dir="@{logdir}"/>
+            <junit printsummary="on" haltonfailure="no">
+                <classpath>
+                    <path refid="classpath"/>
+                    <pathelement location="@{classesdir}"/>
+                </classpath>
+                <formatter type="plain"/>
+                <batchtest todir="@{logdir}">
+                    <fileset dir="@{testdir}"/>
+                </batchtest>
+            </junit>
+			<mkdir dir="@{jardir}"/>
+			<jar destfile="@{jardir}/@{jarname}"
+				 basedir="@{classesdir}">
+			</jar>
+			<java classname="@{mainclass}"
+				  fork="true">
+				<classpath>
+                    <path refid="classpath"/>
+					<path location="@{jardir}/@{jarname}"/>
+				</classpath>
+			</java>
+		</sequential>
+	</macrodef>
+    
+	<target name="build-project">
+		<buildproject testdir="test"
+                      logdir="logTest"
+                      srcdir="src"
+					  classesdir="bin"
+                      resources="resources"
+                      properties="config.properties"
+                      logconfig="log4j2.xml"
+					  jardir="build"
+					  jarname="tdd.jar"
+					  mainclass="Runner">
+            <projectclasspath>
+				<fileset dir="lib"/>
+			</projectclasspath>
+		</buildproject>
+	</target>
+	
+	<target name="main" depends="build-project">
+	</target>
+
+</project>
